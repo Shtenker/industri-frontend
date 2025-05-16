@@ -2,6 +2,9 @@ const form = document.getElementById("orderForm");
 const productList = document.getElementById("productList");
 
 async function loadProducts() {
+    
+    productList.innerHTML = "";
+
     const response = await fetch("https://industri-backend.onrender.com/products");
     const products = await response.json();
 
@@ -18,7 +21,7 @@ async function loadProducts() {
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const selected = Array.from(document.querySelectorAll("input[name='products']:checked"))
-        .map(input => ({ id: input.value })); // uses articleNumber as product ID
+        .map(input => ({ id: input.value }));
 
     const response = await fetch("https://industri-backend.onrender.com/submit-order", {
         method: "POST",
