@@ -2,7 +2,8 @@
   <thead>
     <tr>
       <th>Order ID</th>
-      <th>Row #</th>
+      <th>Line #</th>
+      <th>Product ID</th>
       <th>Product Name</th>
     </tr>
   </thead>
@@ -12,39 +13,32 @@
 <script>
 async function fetchAndRenderOrders() {
   try {
-    // Fetch product list
     const productsResponse = await fetch("https://industri-backend.onrender.com/products");
     const products = await productsResponse.json();
 
-    // Map product article numbers to names
     const productMap = {};
     products.forEach(p => {
       productMap[p.articleNumber] = p.name;
     });
 
-    // Fetch orders
     const ordersResponse = await fetch("https://industri-backend.onrender.com/orders");
     const orders = await ordersResponse.json();
 
-    // Group orders by order_id
     const grouped = {};
     orders.forEach(({ order_id, product_id, line_number }) => {
       if (!grouped[order_id]) grouped[order_id] = [];
       grouped[order_id].push({ product_id, line_number });
     });
 
-    // Clear table
     const tableBody = document.getElementById("ordersTableBody");
     tableBody.innerHTML = "";
 
-    // Render grouped orders
     Object.entries(grouped).forEach(([orderId, items]) => {
       items.sort((a, b) => a.line_number - b.line_number);
 
       items.forEach((item, idx) => {
         const row = document.createElement("tr");
 
-        // Only insert Order ID once per group (rowSpan-style)
         if (idx === 0) {
           const orderCell = document.createElement("td");
           orderCell.textContent = orderId;
@@ -55,10 +49,14 @@ async function fetchAndRenderOrders() {
         const lineCell = document.createElement("td");
         lineCell.textContent = item.line_number;
 
+        const idCell = document.createElement("td");
+        idCell.textContent = item.product_id;
+
         const productCell = document.createElement("td");
         productCell.textContent = productMap[item.product_id] || "Unknown product";
 
         row.appendChild(lineCell);
+        row.appendChild(idCell);
         row.appendChild(productCell);
 
         tableBody.appendChild(row);
