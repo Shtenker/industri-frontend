@@ -63,3 +63,28 @@ form.addEventListener("submit", async (e) => {
 });
 
 loadProducts();
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const selected = Array.from(document.querySelectorAll("input[name='products']:checked"))
+        .map(input => ({ id: input.value }));
+
+    try {
+        const response = await fetch("https://industri-backend.onrender.com/submit-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ products: selected })
+        });
+
+        if (!response.ok) {
+            const text = await response.text();  
+            throw new Error(`Server error: ${response.status} - ${text}`);
+        }
+
+        const result = await response.json();
+        alert(result.message + " | Order ID: " + result.order_id);
+    } catch (error) {
+        alert("Failed to submit order: " + error.message);
+        console.error("Submit order error:", error);
+    }
+});
