@@ -2,7 +2,7 @@
   <thead>
     <tr>
       <th>Order ID</th>
-      <th>Line #</th>
+      <th>Row #</th>
       <th>Product ID</th>
       <th>Product Name</th>
     </tr>
@@ -21,49 +21,48 @@ async function fetchAndRenderOrders() {
       productMap[p.articleNumber] = p.name;
     });
 
-    const ordersResponse = await fetch("https://industri-backend.onrender.com/orders");
-    const orders = await ordersResponse.json();
+    const response = await fetch("https://industri-backend.onrender.com/orders");
+    const orders = await response.json();
 
-    const grouped = {};
-    orders.forEach(({ order_id, product_id, line_number }) => {
-      if (!grouped[order_id]) grouped[order_id] = [];
-      grouped[order_id].push({ product_id, line_number });
+    const groupedOrders = {};
+    orders.forEach(({ order_id, product_id, row_number }) => {
+      if (!groupedOrders[order_id]) groupedOrders[order_id] = [];
+      groupedOrders[order_id].push({ product_id, row_number });
     });
 
     const tableBody = document.getElementById("ordersTableBody");
     tableBody.innerHTML = "";
 
-    Object.entries(grouped).forEach(([orderId, items]) => {
-      items.sort((a, b) => a.line_number - b.line_number);
-
-      items.forEach((item, idx) => {
+    for (const [orderId, items] of Object.entries(groupedOrders)) {
+      items.sort((a, b) => a.row_number - b.row_number);
+      items.forEach((item, index) => {
         const row = document.createElement("tr");
 
-        if (idx === 0) {
+        if (index === 0) {
           const orderCell = document.createElement("td");
           orderCell.textContent = orderId;
           orderCell.rowSpan = items.length;
           row.appendChild(orderCell);
         }
 
-        const lineCell = document.createElement("td");
-        lineCell.textContent = item.line_number;
+        const rowCell = document.createElement("td");
+        rowCell.textContent = item.row_number;
 
         const idCell = document.createElement("td");
         idCell.textContent = item.product_id;
 
-        const productCell = document.createElement("td");
-        productCell.textContent = productMap[item.product_id] || "Unknown product";
+        const nameCell = document.createElement("td");
+        nameCell.textContent = productMap[item.product_id] || "Unknown";
 
-        row.appendChild(lineCell);
+        row.appendChild(rowCell);
         row.appendChild(idCell);
-        row.appendChild(productCell);
+        row.appendChild(nameCell);
 
         tableBody.appendChild(row);
       });
-    });
-  } catch (error) {
-    console.error("Failed to load or render orders:", error);
+    }
+  } catch (err) {
+    console.error("Error loading orders:", err);
   }
 }
 
