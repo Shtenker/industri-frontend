@@ -1,13 +1,12 @@
 const form = document.getElementById("orderForm");
 const productList = document.getElementById("productList");
 
-
 let productsLoaded = false;
 
 async function loadProducts() {
-    if (productsLoaded) return;  
+    if (productsLoaded) return;
     productsLoaded = true;
-  
+
     productList.innerHTML = "";
 
     try {
@@ -50,41 +49,17 @@ form.addEventListener("submit", async (e) => {
         });
 
         if (!response.ok) {
-            throw new Error("Failed to submit order");
-        }
-
-        const result = await response.json();
-        alert(result.message + " | Order ID: " + result.order_id);
-        form.reset();  
-    } catch (error) {
-        console.error("Error submitting order:", error);
-        alert("Failed to submit order. Please try again.");
-    }
-});
-
-loadProducts();
-
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const selected = Array.from(document.querySelectorAll("input[name='products']:checked"))
-        .map(input => ({ id: input.value }));
-
-    try {
-        const response = await fetch("https://industri-backend.onrender.com/submit-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ products: selected })
-        });
-
-        if (!response.ok) {
             const text = await response.text();  
             throw new Error(`Server error: ${response.status} - ${text}`);
         }
 
         const result = await response.json();
         alert(result.message + " | Order ID: " + result.order_id);
+        form.reset();
     } catch (error) {
         alert("Failed to submit order: " + error.message);
         console.error("Submit order error:", error);
     }
 });
+
+loadProducts();
