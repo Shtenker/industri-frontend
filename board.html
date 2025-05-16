@@ -47,15 +47,14 @@ async function fetchAndRenderOrders() {
 
         const rowCell = document.createElement("td");
         rowCell.textContent = item.row_number;
+        row.appendChild(rowCell);
 
         const idCell = document.createElement("td");
         idCell.textContent = item.product_id;
+        row.appendChild(idCell);
 
         const nameCell = document.createElement("td");
         nameCell.textContent = productMap[item.product_id] || "Unknown";
-
-        row.appendChild(rowCell);
-        row.appendChild(idCell);
         row.appendChild(nameCell);
 
         tableBody.appendChild(row);
