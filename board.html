@@ -1,76 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Order Dashboard (Grouped)</title>
-<style>
-  table {
-    border-collapse: collapse;
-    width: 90%;
-    margin: 20px auto;
-  }
-  th, td {
-    border: 1px solid #aaa;
-    padding: 8px 12px;
-    text-align: left;
-  }
-  th {
-    background-color: #eee;
-  }
-</style>
-</head>
-<body>
-  <h1 style="text-align:center;">Order Dashboard (Grouped by Order)</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Products</th>
-      </tr>
-    </thead>
-    <tbody id="orderTableBody"></tbody>
-  </table>
+<table>
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Row #</th>
+      <th>Product Name</th>
+    </tr>
+  </thead>
+  <tbody id="ordersTableBody"></tbody>
+</table>
+
 
 <script>
 async function fetchAndRenderOrders() {
   try {
+   
+    const productsResponse = await fetch("https://industri-backend.onrender.com/products");
+    const products = await productsResponse.json();
+    
+   
+    const productMap = {};
+    products.forEach(p => {
+      productMap[p.articleNumber] = p.name;
+    });
+
+  
     const response = await fetch("https://industri-backend.onrender.com/orders");
     const orders = await response.json();
 
-    // Group orders by order_id
+   
     const groupedOrders = {};
-    orders.forEach(({ order_id, product_id }) => {
-      if (!groupedOrders[order_id]) {
-        groupedOrders[order_id] = [];
-      }
-      groupedOrders[order_id].push(product_id);
+    orders.forEach(({ order_id, product_id, line_number }) => {
+      if (!groupedOrders[order_id]) groupedOrders[order_id] = [];
+      groupedOrders[order_id].push({ product_id, line_number });
     });
 
-    const tbody = document.getElementById("orderTableBody");
-    tbody.innerHTML = ""; // Clear existing rows
+ 
+    const tableBody = document.getElementById("ordersTableBody");
+    tableBody.innerHTML = "";
 
-    // Render grouped orders
-    for (const orderId in groupedOrders) {
-      const products = groupedOrders[orderId].join(", ");
-      const row = document.createElement("tr");
+    for (const [orderId, items] of Object.entries(groupedOrders)) {
+      items.sort((a, b) => a.line_number - b.line_number);
+      items.forEach(({ product_id, line_number }, index) => {
+        const productName = productMap[product_id] || "Unknown product";
+        const row = document.createElement("tr");
+        
+        if (index === 0) {
+       
+          const orderCell = document.createElement("td");
+          orderCell.textContent = orderId;
+          orderCell.rowSpan = items.length;
+          row.appendChild(orderCell);
+        }
+        
+        const lineCell = document.createElement("td");
+        lineCell.textContent = line_number;
+        const productCell = document.createElement("td");
+        productCell.textContent = productName;
 
-      const orderIdCell = document.createElement("td");
-      orderIdCell.textContent = orderId;
-      row.appendChild(orderIdCell);
+        row.appendChild(lineCell);
+        row.appendChild(productCell);
 
-      const productsCell = document.createElement("td");
-      productsCell.textContent = products;
-      row.appendChild(productsCell);
-
-      tbody.appendChild(row);
+        tableBody.appendChild(row);
+      });
     }
   } catch (err) {
-    console.error("Failed to load orders:", err);
+    console.error("Error loading orders:", err);
   }
 }
-
-// Load and render on page load
-fetchAndRenderOrders();
-</script>
-</body>
-</html>
